@@ -8,14 +8,16 @@ using std::cout, std::endl;
 void Board::display() const {
     clear_terminal();
 
+    cout << "  abcdefgh" << endl;
     for (int rank = 7; rank >= 0; rank--) {
+        cout << rank+1 << " ";
         for (int file = 0; file < 8; file++) {
             int index = (rank*8) + file;
             print_piece(state[index]);
         }
-        cout << endl;
+        cout << " " << rank+1 << endl;
     }
-    cout << endl;
+    cout << "  abcdefgh" << endl;
 }
 
 bool Board::is_legal_move(const Move& move, Color player) {
@@ -131,15 +133,13 @@ bool Board::is_real_move(std::string notation, Color player) {
     // Cannot capture a friendly piece.
     int dst_piece = state[dst_index];
     if (dst_piece != EMPTY) {
-        bool dst_isWhite = (piece >= WHITE_PAWN && piece <= WHITE_KING);
+        bool dst_isWhite = (dst_piece >= WHITE_PAWN && dst_piece <= WHITE_KING);
         if (isWhite == dst_isWhite)
             return false;
     }
 
     int file_diff = dst_file - src_file;
     int rank_diff = dst_rank - src_rank;
-    int abs_file_diff = std::abs(file_diff);
-    int abs_rank_diff = std::abs(rank_diff);
 
     // Ensure we are actually moving a piece.
     if (file_diff == 0 && rank_diff == 0) {

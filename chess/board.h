@@ -1,8 +1,9 @@
 #ifndef BOARD_H
 #define BOARD_H
 #include "move.h"
-#include "game.h"
 #include <cstdint>
+
+enum Color : uint8_t;
 
 enum Piece : uint8_t {
     EMPTY,

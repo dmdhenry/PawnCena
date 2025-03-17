@@ -74,13 +74,15 @@ void play_move(Board& board, Color player, bool is_real) {
     if (is_real) {
         board.display();
 
+        bool trying_again = false;
         while (true) {
-            move.set_move(request_player_move());
+            move.set_move(request_player_move(trying_again));
             if (board.is_legal_move(move, player)) {
                 break;
             }
 
-            std::cout << "Illegal Move! Try again." << std::endl << std::endl;
+            trying_again = true;
+            board.display();
         }
     } else {
         move.set_move(request_bot_move(board, player));
@@ -90,9 +92,13 @@ void play_move(Board& board, Color player, bool is_real) {
     board.update_move(move, player);
 }
 
-std::string request_player_move() {
+std::string request_player_move(bool trying_again) {
     std::string move;
-    std::cout << "Input a move: ";
+    if (trying_again) {
+        std::cout << "TRY AGAIN: ";
+    } else {
+        std::cout << "Input a move: ";
+    }
     std::cin >> move;
     return move;
 }
