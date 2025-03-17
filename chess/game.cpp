@@ -41,7 +41,7 @@ Color play_game(bool white_real, bool black_real) {
         /////////////////////////////////////////
         play_move(board, BLACK, black_real);
 
-        // See if black is checkmated
+        // See if white is checkmated
         if (is_checkmated(board, WHITE)) {
             return BLACK;
         }
@@ -79,6 +79,8 @@ void play_move(Board& board, Color player, bool is_real) {
             if (board.is_legal_move(move, player)) {
                 break;
             }
+
+            std::cout << "Illegal Move! Try again." << std::endl << std::endl;
         }
     } else {
         move.set_move(request_bot_move(board, player));

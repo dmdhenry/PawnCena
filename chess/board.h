@@ -44,7 +44,21 @@ private:
     bool is_under_attack_from_diagonal(int file, int rank, Color player);
 
     bool is_kingside_castle_legal(Color player);
+    void castle_kingside(Color player);
+
     bool is_queenside_castle_legal(Color player);
+    void castle_queenside(Color player);
+
+    void handle_castling_history(Piece piece, int src_index);
+    void handle_en_passant_history(Piece piece, int src_rank, int dst_rank, int src_file);
+    void handle_promotion(Piece piece, std::string notation, int dst_rank, int dst_index);
+
+    bool is_real_move(std::string notation, Color player);
+    bool is_legal_pawn_move(std::string notation, Color player, int src_index, int dst_index);
+    bool is_legal_knight_move(Color player, int src_index, int dst_index);
+    bool is_legal_diagonal_move(Color player, int src_index, int dst_index);
+    bool is_legal_straight_move(Color player, int src_index, int dst_index);
+    bool is_legal_king_move(Color player, int src_index, int dst_index);
 
 public:
     Board();
