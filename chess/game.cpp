@@ -85,7 +85,7 @@ void play_move(Board& board, Color player, bool is_real) {
     }
 
     // Update the board
-    board.update_move(move);
+    board.update_move(move, player);
 }
 
 std::string request_player_move() {
