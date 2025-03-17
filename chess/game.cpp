@@ -76,7 +76,7 @@ void play_move(Board& board, Color player, bool is_real) {
 
         while (true) {
             move.set_move(request_player_move());
-            if (board.is_legal_move(move)) {
+            if (board.is_legal_move(move, player)) {
                 break;
             }
         }

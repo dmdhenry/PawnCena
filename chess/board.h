@@ -1,6 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 #include "move.h"
+#include "game.h"
 #include <cstdint>
 
 enum Piece : uint8_t {
@@ -18,19 +19,21 @@ enum Piece : uint8_t {
     BLACK_KNIGHT,
     BLACK_BISHOP,
     BLACK_QUEEN,
-    BLACK_KING
+    BLACK_KING,
 };
 
 class Board {
 private:
     Piece state[64];
-
-public:
+    Piece get_piece(int file, int rank);
+    
+    public:
     Board();
-
+    
     void display() const;
-    bool is_legal_move(const Move& move) const;
+    bool is_legal_move(const Move& move, Color player);
     void update_move(const Move& move);
+    bool pinned_move(Color player, int src_index, int dst_index);
 };
 
 void print_piece(const Piece piece);
