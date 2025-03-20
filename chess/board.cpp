@@ -596,19 +596,20 @@ bool Board::is_fifty_move_rule_draw() {
 }
 
 bool Board::is_threefold_repetition_draw() {
-    if (prev_moves.size() < 6) {
+    // NOTE: This assumes the threefold repetition is consecutive! This isn't necessarily true (at least over the board).
+
+    if (prev_moves.size() < 12) {
         return false;
     }
 
-    return (prev_moves[0].get_move() == prev_moves[2].get_move() && prev_moves[2].get_move() == prev_moves[4].get_move() &&
-            prev_moves[1].get_move() == prev_moves[3].get_move() && prev_moves[3].get_move() == prev_moves[5].get_move());
+    return (prev_moves[0].get_move() == prev_moves[4].get_move() && prev_moves[4].get_move() == prev_moves[8].get_move() &&
+            prev_moves[1].get_move() == prev_moves[5].get_move() && prev_moves[5].get_move() == prev_moves[9].get_move() && 
+            prev_moves[2].get_move() == prev_moves[6].get_move() && prev_moves[6].get_move() == prev_moves[10].get_move() &&
+            prev_moves[3].get_move() == prev_moves[7].get_move() && prev_moves[7].get_move() == prev_moves[11].get_move());
 }
 
 // Assumes move legality has already been checked!
-void Board::update_move(const Move& move, Color player) {
-    // Every move cancels current valid en passant moves... unless this move reveals en passant! (later in function)
-    en_passant_square = -1;
-    
+void Board::update_move(const Move& move, Color player) {    
     // Move Piece and Update History
     std::string notation = move.get_move();
 
@@ -630,6 +631,14 @@ void Board::update_move(const Move& move, Color player) {
 
         Piece piece = state[src_index];
         state[dst_index] = piece;
+        
+        // Remove en-passanted pawns 
+        if (piece == WHITE_PAWN && dst_index == en_passant_square) {
+            state[dst_index-8] = EMPTY;
+        } else if (piece == BLACK_PAWN && dst_index == en_passant_square) {
+            state[dst_index+8] = EMPTY;
+        }
+
         state[src_index] = EMPTY;
         
         // Castling
@@ -684,7 +693,7 @@ void Board::handle_prev_move_history(std::string& notation) {
 
     // Update previous move buffer
     prev_moves.push_back(notation);
-    if (prev_moves.size() > 6) {
+    if (prev_moves.size() > 12) {
         prev_moves.erase(prev_moves.begin());
     }
 
@@ -730,6 +739,8 @@ void Board::handle_en_passant_history(Piece piece, int src_rank, int dst_rank, i
         en_passant_square = 16 + src_file;
     } else if (piece == BLACK_PAWN && src_rank == 6 && dst_rank == 4) {
         en_passant_square = 40 + src_file;
+    } else {
+        en_passant_square = -1;
     }
 }
 

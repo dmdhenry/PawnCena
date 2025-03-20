@@ -18,21 +18,25 @@ Color play_game(bool white_real, bool black_real) {
 
         // See if black is checkmated
         if (is_checkmated(board, BLACK)) {
+            board.display();
             return WHITE;
         }
         
         // See if a stalemate exists
         if (is_stalemated(board, BLACK)) {
+            board.display();
             return DRAW;
         }
 
         // Check for fifty move rule draws
         if (fifty_move_rule_draw(board)) {
+            board.display();
             return DRAW;
         }
     
         // Check for threefold repetition rule draws
         if (threefold_repetition_draw(board)) {
+            board.display();
             return DRAW;
         } 
 
@@ -43,21 +47,25 @@ Color play_game(bool white_real, bool black_real) {
 
         // See if white is checkmated
         if (is_checkmated(board, WHITE)) {
+            board.display();
             return BLACK;
         }
         
         // See if a stalemate exists
         if (is_stalemated(board, WHITE)) {
+            board.display();
             return DRAW;
         }
 
         // Check for fifty move rule draws
         if (fifty_move_rule_draw(board)) {
+            board.display();
             return DRAW;
         }
     
         // Check for threefold repetition rule draws
         if (threefold_repetition_draw(board)) {
+            board.display();
             return DRAW;
         } 
 

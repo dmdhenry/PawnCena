@@ -37,7 +37,6 @@ private:
     bool white_can_oo;
     bool white_can_ooo;
 
-    Piece get_piece(int file, int rank);
     int get_lowest_piece_index(Piece piece);
 
     bool pinned_move(Color player, int src_index, int dst_index);
@@ -73,6 +72,8 @@ public:
     Board();
     
     void display() const;
+    Piece get_piece(int file, int rank);
+
     void update_move(const Move& move, Color player);
     
     bool is_legal_move(const Move& move, Color player);

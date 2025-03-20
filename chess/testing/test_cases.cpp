@@ -226,6 +226,242 @@ bool test7() {
     return true;
 }
 
+bool test8() {
+    Board b; // board
+    bool t = true; // turn tracker
+    
+    if (!valid(b, t, "e2e3")) { return false; }
+    if (!valid(b, t, "e7e6")) { return false; }
+    if (!valid(b, t, "e1e2")) { return false; }
+    if (!valid(b, t, "e8e7")) { return false; }
+    if (!valid(b, t, "e2e1")) { return false; }
+    if (!valid(b, t, "e7e8")) { return false; }
+    if (!valid(b, t, "e1e2")) { return false; }
+    if (!valid(b, t, "e8e7")) { return false; }
+    if (!valid(b, t, "e2e1")) { return false; }
+    if (!valid(b, t, "e7e8")) { return false; }
+
+    if (b.is_threefold_repetition_draw()) {
+        return false; // only 2 fold so far
+    }
+
+    if (!valid(b, t, "e1e2")) { return false; }
+    if (!valid(b, t, "e8e7")) { return false; }
+    if (!valid(b, t, "e2e1")) { return false; }
+    if (!valid(b, t, "e7e8")) { return false; }
+
+    if (!b.is_threefold_repetition_draw()) {
+        return false; // is 3 fold now
+    }
+
+    return true;
+}
+
+bool test9() {
+    Board b; // board
+    bool t = true; // turn tracker
+    
+    if (!valid(b, t, "e2e3")) { return false; }
+    if (!valid(b, t, "f7f6")) { return false; }
+    if (!valid(b, t, "f2f4")) { return false; }
+
+    if (is_checkmated(b, WHITE)) {
+        return false; // white never checkmated
+    }
+
+    if (is_checkmated(b, BLACK)) {
+        return false; // not yet checkmated
+    }
+    
+    if (!valid(b, t, "g7g5")) { return false; }
+    if (!valid(b, t, "d1h5")) { return false; }
+
+    if (!is_checkmated(b, BLACK)) {
+        return false; // black is checkmated now
+    }
+
+    if (is_checkmated(b, WHITE)) {
+        return false; // white never checkmated 
+    }
+
+    return true;
+}
+
+bool test10() {
+    Board b; // board
+    bool t = true; // turn tracker
+    
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+
+    if (b.is_threefold_repetition_draw()) {
+        return false; // not a threefold repetition
+    }
+
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+    if (!valid(b, t, "f6d5")) { return false; }
+    if (!valid(b, t, "d4f3")) { return false; }
+    if (!valid(b, t, "d5f6")) { return false; }
+    if (!valid(b, t, "f3g1")) { return false; }
+    if (!valid(b, t, "f6g8")) { return false; }
+    if (!valid(b, t, "g1f3")) { return false; }
+    if (!valid(b, t, "g8f6")) { return false; }
+    if (!valid(b, t, "f3d4")) { return false; }
+
+    if (b.is_fifty_move_rule_draw()) {
+        return false; // 49.5/50 ... not yet!
+    }
+
+    if (!valid(b, t, "f6d5")) { return false; }
+
+    if (!b.is_fifty_move_rule_draw()) {
+        return false; // 50/50... is a draw
+    }
+
+    return true;
+}
+
+bool test11() {
+    Board b; // board
+    bool t = true; // turn tracker
+    
+    if (!valid(b, t, "e2e3")) { return false; } 
+    if (!valid(b, t, "a7a5")) { return false; } 
+    if (!valid(b, t, "d1h5")) { return false; } 
+    if (!valid(b, t, "a8a6")) { return false; } 
+    if (!valid(b, t, "h5a5")) { return false; } 
+    if (!valid(b, t, "h7h5")) { return false; } 
+    if (!valid(b, t, "a5c7")) { return false; } 
+    if (!valid(b, t, "a6h6")) { return false; } 
+    if (!valid(b, t, "h2h4")) { return false; } 
+    if (!valid(b, t, "f7f6")) { return false; } 
+    if (!valid(b, t, "c7d7")) { return false; }
+    if (!valid(b, t, "e8f7")) { return false; } 
+    if (!valid(b, t, "d7b7")) { return false; } 
+    if (!valid(b, t, "d8d3")) { return false; } 
+    if (!valid(b, t, "b7b8")) { return false; } 
+    if (!valid(b, t, "d3h7")) { return false; } 
+    if (!valid(b, t, "b8c8")) { return false; } 
+    if (!valid(b, t, "f7g6")) { return false; }
+
+    if (is_stalemated(b, BLACK)) { 
+        return false; // not yet
+    }
+
+    if (!valid(b, t, "c8e6")) { return false; }
+
+    if (!is_stalemated(b, BLACK)) { 
+        return false; // black has no legal moves
+    }
+
+    return true;
+}
+
+bool test12() {
+    Board b; // board
+    bool t = true; // turn tracker
+    
+    if (!valid(b, t, "e2e4")) { return false; } 
+    if (!valid(b, t, "h7h5")) { return false; } 
+    if (!valid(b, t, "e4e5")) { return false; } 
+    if (!valid(b, t, "f7f5")) { return false; } 
+    if (!valid(b, t, "e5f6")) { return false; } 
+
+    if (b.get_piece(5, 4) != EMPTY) {
+        return false;
+    }
+
+    return true;
+}
+
 void run_all_test_cases() {
     // When adding a new test case, ensure that white and black alternate every move!
     run_test_case(1, test1()); // beefy case
@@ -235,4 +471,9 @@ void run_all_test_cases() {
     run_test_case(5, test5()); // test rook promotion
     run_test_case(6, test6()); // test knight promotion
     run_test_case(7, test7()); // invalid notation case
+    run_test_case(8, test8()); // threefold repetition draw
+    run_test_case(9, test9()); // checkmate 
+    run_test_case(10, test10()); // fifty move rule draw
+    run_test_case(11, test11()); // stalemate
+    run_test_case(12, test12()); // en passant
 }
