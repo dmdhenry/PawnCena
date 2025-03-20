@@ -2,6 +2,9 @@
 #define BOARD_H
 #include "move.h"
 #include <cstdint>
+#include <vector>
+#include <string>
+using std::vector;
 
 enum Color : uint8_t;
 
@@ -25,12 +28,14 @@ enum Piece : uint8_t {
 
 class Board {
 private:
+    vector<Move> prev_moves;
     Piece state[64];
+    int en_passant_square;
+    int draw_move_counter;
     bool black_can_oo;
     bool black_can_ooo;
     bool white_can_oo;
     bool white_can_ooo;
-    int en_passant_square;
 
     Piece get_piece(int file, int rank);
     int get_lowest_piece_index(Piece piece);
@@ -52,7 +57,8 @@ private:
 
     void handle_castling_history(Piece piece, int src_index);
     void handle_en_passant_history(Piece piece, int src_rank, int dst_rank, int src_file);
-    void handle_promotion(Piece piece, std::string notation, int dst_rank, int dst_index);
+    void handle_promotion(Piece piece, std::string& notation, int dst_rank, int dst_index);
+    void handle_prev_move_history(std::string& notation);
 
     bool is_real_move(std::string notation, Color player);
     bool is_legal_pawn_move(std::string notation, Color player, int src_index, int dst_index);
@@ -60,13 +66,22 @@ private:
     bool is_legal_diagonal_move(Color player, int src_index, int dst_index);
     bool is_legal_straight_move(Color player, int src_index, int dst_index);
     bool is_legal_king_move(Color player, int src_index, int dst_index);
+    
+    vector<std::string> generate_all_squares();
 
 public:
     Board();
     
     void display() const;
-    bool is_legal_move(const Move& move, Color player);
     void update_move(const Move& move, Color player);
+    
+    bool is_legal_move(const Move& move, Color player);
+    bool has_no_legal_moves(Color player);
+    vector<Move> get_legal_moves(Color player);
+    
+    bool is_checked(Color player);
+    bool is_fifty_move_rule_draw();
+    bool is_threefold_repetition_draw();
 };
 
 void print_piece(const Piece piece);

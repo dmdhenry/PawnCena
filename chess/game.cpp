@@ -109,17 +109,17 @@ std::string request_bot_move(Board& board, Color player) {
 }
 
 bool is_checkmated(Board& board, Color player) {
-    return false;
+    return board.is_checked(player) && board.has_no_legal_moves(player);
 }
 
 bool is_stalemated(Board& board, Color player) {
-    return false;
+    return !board.is_checked(player) && board.has_no_legal_moves(player);
 }
 
 bool fifty_move_rule_draw(Board& board) {
-    return false;
+    return board.is_fifty_move_rule_draw();
 }
 
 bool threefold_repetition_draw(Board& board) {
-    return false;
+    return board.is_threefold_repetition_draw();
 }

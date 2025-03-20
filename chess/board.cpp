@@ -20,6 +20,32 @@ void Board::display() const {
     cout << "  abcdefgh" << endl;
 }
 
+bool Board::has_no_legal_moves(Color player) {
+    return get_legal_moves(player).empty();
+}
+
+vector<Move> Board::get_legal_moves(Color player) {
+    // TODO: This is super inefficient! Don't check literally every possible move!
+
+    vector<Move> legal_moves;
+    vector<std::string> squares = generate_all_squares();
+    vector<std::string> promotion_notations = {"", "pR", "pN", "pB"};
+
+    for (std::string& src_square : squares) {
+        for (std::string& dst_square : squares) {
+            for (std::string& promotion_notation : promotion_notations) {
+                Move move;
+                move.set_move(src_square + dst_square + promotion_notation);
+                if (is_legal_move(move, player)) {
+                    legal_moves.push_back(move);
+                }
+            }
+        }
+    }
+
+    return legal_moves;
+}
+
 bool Board::is_legal_move(const Move& move, Color player) {
 
     // Only accept:
@@ -541,6 +567,16 @@ bool Board::pinned_move(Color player, int src_index, int dst_index) {
     state[dst_index] = state[src_index];
     state[src_index] = EMPTY;
 
+    bool under_attack = is_checked(player);
+
+    // Undo temporary move
+    state[src_index] = state[dst_index];
+    state[dst_index] = temp;
+
+    return under_attack;
+}
+
+bool Board::is_checked(Color player) {
     // Determine index of king
     int king_index = 0;
     if (player == WHITE) {
@@ -552,13 +588,20 @@ bool Board::pinned_move(Color player, int src_index, int dst_index) {
     // Check if king_index is currently under attack by opposing pieces
     int king_file = king_index % 8;
     int king_rank = king_index / 8;
-    bool under_attack = is_square_under_attack(king_file, king_rank, player);
+    return is_square_under_attack(king_file, king_rank, player);
+}
 
-    // Undo temporary move
-    state[src_index] = state[dst_index];
-    state[dst_index] = temp;
+bool Board::is_fifty_move_rule_draw() {
+    return draw_move_counter >= 100;
+}
 
-    return under_attack;
+bool Board::is_threefold_repetition_draw() {
+    if (prev_moves.size() < 6) {
+        return false;
+    }
+
+    return (prev_moves[0].get_move() == prev_moves[2].get_move() && prev_moves[2].get_move() == prev_moves[4].get_move() &&
+            prev_moves[1].get_move() == prev_moves[3].get_move() && prev_moves[3].get_move() == prev_moves[5].get_move());
 }
 
 // Assumes move legality has already been checked!
@@ -568,6 +611,9 @@ void Board::update_move(const Move& move, Color player) {
     
     // Move Piece and Update History
     std::string notation = move.get_move();
+
+    // Update Previous Move History
+    handle_prev_move_history(notation);
 
     if (notation == "oo") {
         castle_kingside(player);
@@ -634,6 +680,33 @@ void Board::castle_queenside(Color player) {
     }
 }
 
+void Board::handle_prev_move_history(std::string& notation) {
+
+    // Update previous move buffer
+    prev_moves.push_back(notation);
+    if (prev_moves.size() > 6) {
+        prev_moves.erase(prev_moves.begin());
+    }
+
+    // Update 50-move counter
+    int src_file = notation[0] - 'a';
+    int src_rank = notation[1] - '1';
+    int dst_file = notation[2] - 'a';
+    int dst_rank = notation[3] - '1';
+    int src_index = src_rank * 8 + src_file;
+    int dst_index = dst_rank * 8 + dst_file;
+
+    Piece src_piece = state[src_index];
+    Piece dst_piece = state[dst_index];
+
+    // If piece is captured or moved piece is a pawn, reset counter to 0!
+    if (dst_piece != EMPTY || src_piece == WHITE_PAWN || src_piece == BLACK_PAWN) {
+        draw_move_counter = 0;
+    } else {
+        draw_move_counter++;
+    }
+}
+
 void Board::handle_castling_history(Piece piece, int src_index) {
     if (piece == WHITE_KING) {
         white_can_oo = false;
@@ -660,7 +733,7 @@ void Board::handle_en_passant_history(Piece piece, int src_rank, int dst_rank, i
     }
 }
 
-void Board::handle_promotion(Piece piece, std::string notation, int dst_rank, int dst_index) {
+void Board::handle_promotion(Piece piece, std::string& notation, int dst_rank, int dst_index) {
 
     if (piece == WHITE_PAWN && dst_rank == 7) {
 
@@ -734,6 +807,21 @@ Board::Board() {
     white_can_oo = true;
     white_can_ooo = true;
     en_passant_square = -1;
+    draw_move_counter = 0;
+    prev_moves.clear();
+}
+
+vector<std::string> Board::generate_all_squares() {
+    vector<std::string> all_squares;
+    for (char file = 'a'; file <= 'h'; ++file) {
+        for (char rank = '1'; rank <= '8'; ++rank) {
+            std::string square;
+            square.push_back(file);
+            square.push_back(rank);
+            all_squares.push_back(square);
+        }
+    }
+    return all_squares;
 }
 
 void print_piece(const Piece piece) {

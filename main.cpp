@@ -1,8 +1,13 @@
 #include <iostream>
 #include "chess/game.h"
+#include "chess/testing/test_cases.h"
 using std::cout, std::endl;
 
-int main() {
+void test() {
+    run_all_test_cases();
+}
+
+void play() {
     Color result = play_game(true, true);
     if (result == WHITE) {
         cout << "White wins!" << endl; 
@@ -11,6 +16,10 @@ int main() {
     } else {
         cout << "Draw!" << endl;
     }
+}
 
+int main() {
+    // test();
+    play();
     return 0;
 }
