@@ -108,6 +108,72 @@ void Board::append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index
 
     // vector<std::string> promotion_notations = {"", "pR", "pN", "pB"};
     // Move move(all_squares[src_index] + all_squares[dst_index] + promotion_notation);
+    
+    int src_file = src_index % 8;
+    int src_rank = src_index / 8;
+    int direction = (player == WHITE) ? 1 : -1;
+    int start_rank = (player == WHITE) ? 1 : 6;
+    int back_rank = (player == WHITE) ? 7 : 0;
+
+    // TODO this is probably broken
+
+    // One square forward
+    int dst_index = ((src_rank+direction)*8) + src_file;
+    if (state[dst_index] == EMPTY && !pinned_move(player, src_index, dst_index)) {
+        legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+        
+        // Backrank promotion
+        if (src_rank+direction == back_rank) {
+            legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index] + "pR"));
+            legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index] + "pN"));
+            legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index] + "pB"));
+        }
+    }
+
+    // Left diagonal capture (including en passant and capture with promotion)
+    if (src_file > 0) {
+        int left_cap_idx = ((src_rank+direction)*8) + src_file - 1;
+        if (state[left_cap_idx] != EMPTY) {
+            bool captured_piece_is_white = (state[left_cap_idx] >= WHITE_PAWN && state[left_cap_idx] <= WHITE_KING);
+            if (((player == WHITE) && !captured_piece_is_white) || ((player == BLACK && captured_piece_is_white)) || en_passant_square == left_cap_idx) {
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[left_cap_idx]));
+            }
+
+            // Backrank promotion
+            if (src_rank+direction == back_rank) {
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[left_cap_idx] + "pR"));
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[left_cap_idx] + "pN"));
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[left_cap_idx] + "pB"));
+            }
+        }
+    }
+
+    // Right diagonal capture (including en passant and capture with promotion)
+    if (src_file < 7) {
+        int right_cap_idx = ((src_rank+direction)*8) + src_file + 1;
+        if (state[right_cap_idx] != EMPTY) {
+            bool captured_piece_is_white = (state[right_cap_idx] >= WHITE_PAWN && state[right_cap_idx] <= WHITE_KING);
+            if (((player == WHITE) && !captured_piece_is_white) || ((player == BLACK && captured_piece_is_white)) || en_passant_square == right_cap_idx) {
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[right_cap_idx]));
+            }
+
+            // Backrank promotion
+            if (src_rank+direction == back_rank) {
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[right_cap_idx] + "pR"));
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[right_cap_idx] + "pN"));
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[right_cap_idx] + "pB"));
+            }
+        }
+    }
+
+    // Two squares forward
+    if (src_rank == start_rank) {
+        int intermediate_index = ((start_rank+direction)*8) + src_file;
+        int dst_index = ((start_rank+(direction*2))*8) + src_file;
+        if (state[intermediate_index] == EMPTY && state[dst_index] == EMPTY && !pinned_move(player, src_index, dst_index)) {
+            legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+        }
+    }
 }
 
 void Board::append_all_legal_rook_moves(vector<Move>& legal_moves, int src_index, Color player) {
