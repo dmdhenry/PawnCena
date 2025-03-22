@@ -1,8 +1,11 @@
+#include <iostream>
+#include <sstream>
+#include <cassert>
+#include <limits>
 #include "board.h"
 #include "utils.h"
 #include "move.h"
 #include "game.h"
-#include <iostream>
 using std::cout, std::endl;
 
 void Board::display() const {
@@ -20,30 +23,119 @@ void Board::display() const {
     cout << "  abcdefgh" << endl;
 }
 
-bool Board::has_no_legal_moves(Color player) {
-    return get_legal_moves(player).empty();
+Board Board::inspect_move(Move& move, Color player) {
+    Board new_board = *this;
+    new_board.update_move(move, player);
+    return new_board;
+}
+
+double Board::score_position(Color player_to_move) {
+    // Evaluate position without any recursion (for leaf nodes in bot)
+    // Lower scores favor black, higher scores favor white
+    
+    // CHECKMATE
+    if (is_checkmated(*this, player_to_move)) {
+        if (player_to_move == WHITE) { return -std::numeric_limits<double>::infinity(); }
+        if (player_to_move == BLACK) { return std::numeric_limits<double>::infinity(); }
+        assert(false); // should never reach this!
+    }
+
+    // DRAWS
+    if (is_stalemated(*this, player_to_move)) { return 0.0; }
+    if (threefold_repetition_draw(*this)) { return 0.0; }
+    if (fifty_move_rule_draw(*this)) { return 0.0; }
+
+    // BOARD EVALUATION
+    // Factor in actual material advantages (obviously), spacing, etc.
+
+    return 0.0; // TODO
 }
 
 vector<Move> Board::get_legal_moves(Color player) {
     // TODO: This is super inefficient! Don't check literally every possible move!
 
     vector<Move> legal_moves;
-    vector<std::string> squares = generate_all_squares();
-    vector<std::string> promotion_notations = {"", "pR", "pN", "pB"};
 
-    for (std::string& src_square : squares) {
-        for (std::string& dst_square : squares) {
-            for (std::string& promotion_notation : promotion_notations) {
-                Move move;
-                move.set_move(src_square + dst_square + promotion_notation);
-                if (is_legal_move(move, player)) {
-                    legal_moves.push_back(move);
-                }
-            }
+    if (is_kingside_castle_legal(player)) {
+        legal_moves.push_back(Move("oo"));
+    }
+
+    if (is_queenside_castle_legal(player)) {
+        legal_moves.push_back(Move("ooo"));
+    }
+
+    for (int src_index = 0; src_index < 64; src_index++) {
+        Piece piece = state[src_index];
+        if (piece == EMPTY) {
+            continue;
         }
+        
+        Color piece_color = piece >= WHITE_PAWN && piece <= WHITE_KING ? WHITE : BLACK;
+        if (piece_color != player) {
+            continue;
+        }
+
+        if (piece == WHITE_PAWN || piece == BLACK_PAWN) {
+            append_all_legal_pawn_moves(legal_moves, src_index, player);
+        } else if (piece == WHITE_ROOK || piece == BLACK_ROOK) {
+            append_all_legal_rook_moves(legal_moves, src_index, player);
+        } else if (piece == WHITE_KNIGHT || piece == BLACK_KNIGHT) {
+            append_all_legal_knight_moves(legal_moves, src_index, player);
+        } else if (piece == WHITE_BISHOP || piece == BLACK_BISHOP) {
+            append_all_legal_bishop_moves(legal_moves, src_index, player);
+        } else if (piece == WHITE_QUEEN || piece == BLACK_QUEEN) {
+            append_all_legal_queen_moves(legal_moves, src_index, player);
+        } else if (piece == WHITE_KING || piece == BLACK_KING) {
+            append_all_legal_king_moves(legal_moves, src_index, player);
+        }
+
+        // for (std::string& dst_square : all_squares) {
+        //     for (std::string& promotion_notation : promotion_notations) {
+        //         Move move(src_square + dst_square + promotion_notation);
+        //         if (is_legal_move(move, player)) {
+        //             legal_moves.push_back(move);
+        //         }
+        //     }
+        // }
     }
 
     return legal_moves;
+}
+
+void Board::append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index, Color player) {
+    // legal moves: (UNPINNED) 1 step forward, 2 step forward, left diagonal capture, right diagonal capture, promotions if on back rank!
+    // TODO push all legal moves into legal_moves as efficiently as possible! 
+
+    // vector<std::string> promotion_notations = {"", "pR", "pN", "pB"};
+    // Move move(all_squares[src_index] + all_squares[dst_index] + promotion_notation);
+}
+
+void Board::append_all_legal_rook_moves(vector<Move>& legal_moves, int src_index, Color player) {
+    // legal moves: (UNPINNED) any horizontal or vertical move until another piece is in the way 
+    // TODO push all legal moves into legal_moves as efficiently as possible! 
+}
+
+void Board::append_all_legal_knight_moves(vector<Move>& legal_moves, int src_index, Color player) {
+    // legal moves: (UNPINNED) any L move
+    // TODO push all legal moves into legal_moves as efficiently as possible! 
+}
+
+void Board::append_all_legal_bishop_moves(vector<Move>& legal_moves, int src_index, Color player) {
+    // legal moves: (UNPINNED) any diagonal move until another piece is in the way 
+    // TODO push all legal moves into legal_moves as efficiently as possible! 
+}
+
+void Board::append_all_legal_queen_moves(vector<Move>& legal_moves, int src_index, Color player) {
+    // legal moves: (UNPINNED) any diagonal/horizontal/vertical move until another piece is in the way 
+    // TODO push all legal moves into legal_moves as efficiently as possible! 
+}
+
+void Board::append_all_legal_king_moves(vector<Move>& legal_moves, int src_index, Color player) {
+    // legal moves: 1 square any direction not into check
+}
+
+bool Board::has_no_legal_moves(Color player) {
+    return get_legal_moves(player).empty();
 }
 
 bool Board::is_legal_move(const Move& move, Color player) {
@@ -823,16 +915,97 @@ Board::Board() {
 }
 
 vector<std::string> Board::generate_all_squares() {
-    vector<std::string> all_squares;
+    // Note: This ABSOLUTELY MUST generate squares A1, A2, ... B1, B2, ... up to H8 in that order!
+
+    vector<std::string> squares;
     for (char file = 'a'; file <= 'h'; ++file) {
         for (char rank = '1'; rank <= '8'; ++rank) {
             std::string square;
             square.push_back(file);
             square.push_back(rank);
-            all_squares.push_back(square);
+            squares.push_back(square);
         }
     }
-    return all_squares;
+    return squares;
+}
+
+Board::Board(const Board& other) {
+    prev_moves = other.prev_moves;
+    std::copy(std::begin(other.state), std::end(other.state), std::begin(state));
+    en_passant_square = other.en_passant_square;
+    draw_move_counter = other.draw_move_counter;
+    black_can_oo = other.black_can_oo;
+    black_can_ooo = other.black_can_ooo;
+    white_can_oo = other.white_can_oo;
+    white_can_ooo = other.white_can_ooo;
+}
+
+Board::Board(std::string FEN) {
+    // FEN format: "<piece placement> <active color> <castling> <en passant> <halfmove> <fullmove>"
+    std::istringstream iss(FEN);
+    std::string piecePlacement, activeColor, castling, enPassant, halfmove, fullmove;
+    iss >> piecePlacement >> activeColor >> castling >> enPassant >> halfmove >> fullmove;
+
+    // Clear board state.
+    for (int i = 0; i < 64; i++) {
+        state[i] = EMPTY;
+    }
+
+    // Parse piece placement. FEN ranks go from 8 (top) to 1 (bottom).
+    // Our state[0] corresponds to A1, so rank 8 maps to indices 56-63.
+    int rank = 7, file = 0;
+    for (char c : piecePlacement) {
+        if (c == '/') {
+            rank--;
+            file = 0;
+        } else if (std::isdigit(c)) {
+            file += c - '0';
+        } else {
+            int idx = rank * 8 + file;
+            switch (c) {
+                case 'P': state[idx] = WHITE_PAWN; break;
+                case 'N': state[idx] = WHITE_KNIGHT; break;
+                case 'B': state[idx] = WHITE_BISHOP; break;
+                case 'R': state[idx] = WHITE_ROOK; break;
+                case 'Q': state[idx] = WHITE_QUEEN; break;
+                case 'K': state[idx] = WHITE_KING; break;
+                case 'p': state[idx] = BLACK_PAWN; break;
+                case 'n': state[idx] = BLACK_KNIGHT; break;
+                case 'b': state[idx] = BLACK_BISHOP; break;
+                case 'r': state[idx] = BLACK_ROOK; break;
+                case 'q': state[idx] = BLACK_QUEEN; break;
+                case 'k': state[idx] = BLACK_KING; break;
+                default: state[idx] = EMPTY; break;
+            }
+            file++;
+        }
+    }
+
+    // Set castling rights.
+    white_can_oo = white_can_ooo = black_can_oo = black_can_ooo = false;
+    if (castling != "-") {
+        for (char c : castling) {
+            if (c == 'K') white_can_oo = true;
+            else if (c == 'Q') white_can_ooo = true;
+            else if (c == 'k') black_can_oo = true;
+            else if (c == 'q') black_can_ooo = true;
+        }
+    }
+
+    // Set en passant square.
+    if (enPassant == "-") {
+        en_passant_square = -1;
+    } else {
+        int fileIdx = enPassant[0] - 'a';
+        int rankIdx = enPassant[1] - '1';
+        en_passant_square = rankIdx * 8 + fileIdx;
+    }
+
+    // Set draw move counter from halfmove clock.
+    draw_move_counter = std::stoi(halfmove);
+
+    // Clear move history.
+    prev_moves.clear();
 }
 
 void print_piece(const Piece piece) {

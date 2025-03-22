@@ -1,6 +1,6 @@
 #include "test_cases.h"
-#include "../board.h"
-#include "../game.h"
+#include "../chess/board.h"
+#include "../chess/game.h"
 #include <iostream>
 #include <string>
 using std::cout, std::endl;
@@ -462,8 +462,29 @@ bool test12() {
     return true;
 }
 
+bool test13() {
+    Board b("rnbqkbnr/ppppp2p/5p2/6p1/5P2/4P3/PPPP2PP/RNBQKBNR w KQ - 0 1"); // board
+    bool t = true; // turn tracker
+    
+    // White should find the 1-move checkmate!
+    Move move = request_bot_move(b, WHITE);
+    if (move.get_move() != "d1h5") {
+        return false;
+    }
+
+    // Ensure that move actually checkmates properly
+    if (!valid(b, t, move.get_move())) { return false; } 
+    
+    if (!is_checkmated(b, BLACK)) {
+        return false;
+    }
+
+    return true;
+}
+
 void run_all_test_cases() {
-    // When adding a new test case, ensure that white and black alternate every move!
+
+    // GAME TEST CASES
     run_test_case(1, test1()); // beefy case
     run_test_case(2, test2()); // test implicit queen promotion
     run_test_case(3, test3()); // test explicit queen promotion 
@@ -476,4 +497,8 @@ void run_all_test_cases() {
     run_test_case(10, test10()); // fifty move rule draw
     run_test_case(11, test11()); // stalemate
     run_test_case(12, test12()); // en passant
+
+    // BOT TEST CASES
+    run_test_case(13, test13()); // bot finds 1 move checkmate
+    
 }

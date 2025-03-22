@@ -1,6 +1,6 @@
 #include <iostream>
 #include "chess/game.h"
-#include "chess/testing/test_cases.h"
+#include "testing/test_cases.h"
 using std::cout, std::endl;
 
 void test() {
@@ -19,7 +19,7 @@ void play() {
 }
 
 int main() {
-    // test();
-    play();
+    test();
+    // play();
     return 0;
 }

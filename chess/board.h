@@ -37,6 +37,9 @@ private:
     bool white_can_oo;
     bool white_can_ooo;
 
+    static vector<std::string> generate_all_squares();
+    inline static vector<std::string> all_squares = generate_all_squares();
+
     int get_lowest_piece_index(Piece piece);
 
     bool pinned_move(Color player, int src_index, int dst_index);
@@ -66,11 +69,18 @@ private:
     bool is_legal_straight_move(Color player, int src_index, int dst_index);
     bool is_legal_king_move(Color player, int src_index, int dst_index);
     
-    vector<std::string> generate_all_squares();
+    void append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index, Color player);
+    void append_all_legal_rook_moves(vector<Move>& legal_moves, int src_index, Color player);
+    void append_all_legal_knight_moves(vector<Move>& legal_moves, int src_index, Color player);
+    void append_all_legal_bishop_moves(vector<Move>& legal_moves, int src_index, Color player);
+    void append_all_legal_queen_moves(vector<Move>& legal_moves, int src_index, Color player);
+    void append_all_legal_king_moves(vector<Move>& legal_moves, int src_index, Color player);
 
 public:
     Board();
-    
+    Board(const Board& other);
+    Board(std::string FEN);
+
     void display() const;
     Piece get_piece(int file, int rank);
 
@@ -83,6 +93,9 @@ public:
     bool is_checked(Color player);
     bool is_fifty_move_rule_draw();
     bool is_threefold_repetition_draw();
+
+    Board inspect_move(Move& move, Color player);
+    double score_position(Color player_to_move);
 };
 
 void print_piece(const Piece piece);

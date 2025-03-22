@@ -1,6 +1,7 @@
 #include "game.h"
 #include "board.h"
 #include "move.h"
+#include "../bot/driver.h"
 #include <iostream>
 #include <string>
 using std::cout, std::endl;
@@ -93,7 +94,7 @@ void play_move(Board& board, Color player, bool is_real) {
             board.display();
         }
     } else {
-        move.set_move(request_bot_move(board, player));
+        move = request_bot_move(board, player);
     }
 
     // Update the board
@@ -111,9 +112,9 @@ std::string request_player_move(bool trying_again) {
     return move;
 }
 
-std::string request_bot_move(Board& board, Color player) {
-    std::cerr << "NOT YET IMPLEMENTED!" << std::endl;
-    return "";
+Move request_bot_move(Board& board, Color player) {
+    Bot bot;
+    return bot.request_move(board, player);
 }
 
 bool is_checkmated(Board& board, Color player) {
