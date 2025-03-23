@@ -1,0 +1,13 @@
+
+- Make a simple UI!!! Very necessary for debugging!
+
+- Improve efficiency to allow for deeper searches
+    - Save pinned pieces on update_move to have O(1) pinned piece checking! (Reduces redundancy) 
+
+    - Pinned piece and shit needs to be wayyyy fucking faster
+
+- Board heuristic scorer (score positions based on heuristics, no pruning)
+
+- Hardcode in some openings
+
+- Improve heurisitic scoring
