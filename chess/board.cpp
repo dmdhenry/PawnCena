@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <cassert>
+#include <cmath>
 #include <limits>
 #include "board.h"
 #include "utils.h"
@@ -29,14 +30,14 @@ Board Board::inspect_move(Move& move, Color player) {
     return new_board;
 }
 
-double Board::score_position(Color player_to_move) {
+double Board::score_position(Color player_to_move, int depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight) {
     // Evaluate position without any recursion (for leaf nodes in bot)
     // Lower scores favor black, higher scores favor white
     
     // CHECKMATE
     if (is_checkmated(*this, player_to_move)) {
-        if (player_to_move == WHITE) { return -std::numeric_limits<double>::infinity(); }
-        if (player_to_move == BLACK) { return std::numeric_limits<double>::infinity(); }
+        if (player_to_move == WHITE) { return -1000000 + depth; }
+        if (player_to_move == BLACK) { return 1000000 - depth; }
         assert(false); // should never reach this!
     }
 
@@ -46,13 +47,99 @@ double Board::score_position(Color player_to_move) {
     if (fifty_move_rule_draw(*this)) { return 0.0; }
 
     // BOARD EVALUATION
-    // Factor in actual material advantages (obviously), spacing, etc.
+    double material     = calculate_raw_material_score();
+    // double mobility     = calculate_mobility_difference();
+    double kingSafety   = evaluate_king_safety();
+    // double pawnStructure = evaluate_pawn_structure();
 
-    return 0.0; // TODO
+    return material * material_weight + kingSafety * king_safety_weight;// + pawnStructure * pawn_structure_weight + mobility * mobility_weight
+}
+
+double Board::calculate_mobility_difference() {
+    vector<Move> white_moves = get_legal_moves(WHITE);
+    vector<Move> black_moves = get_legal_moves(BLACK);
+    return 1.0 * (white_moves.size() - black_moves.size());
+}
+
+double Board::evaluate_king_safety() {
+    double score = 0.0;
+    const double maxPenalty = 0.5;    // Maximum penalty when king is at center
+    const double threshold  = 3.0;    // Distance below which penalty applies
+
+    // Evaluate white king
+    int white_king_index = get_lowest_piece_index(WHITE_KING);
+    int white_file = white_king_index % 8;
+    int white_rank = white_king_index / 8;
+    double white_d = std::sqrt(std::pow(white_file - 3.5, 2) + std::pow(white_rank - 3.5, 2));
+    double white_penalty = (white_d < threshold) ? maxPenalty * ((threshold - white_d) / threshold) : 0.0;
+    score -= white_penalty;
+    
+    // Evaluate black king (penalty for black king in center is good for white)
+    int black_king_index = get_lowest_piece_index(BLACK_KING);
+    int black_file = black_king_index % 8;
+    int black_rank = black_king_index / 8;
+    double black_d = std::sqrt(std::pow(black_file - 3.5, 2) + std::pow(black_rank - 3.5, 2));
+    double black_penalty = (black_d < threshold) ? maxPenalty * ((threshold - black_d) / threshold) : 0.0;
+    score += black_penalty;
+    
+    return score;
+}
+
+double Board::evaluate_pawn_structure() {
+    double score = 0.0;
+
+    // Simple check for isolated pawns.
+    for (int i = 0; i < 64; i++) {
+        Piece piece = state[i];
+        if (piece == WHITE_PAWN || piece == BLACK_PAWN) {
+            int file = i % 8;
+            bool has_neighbor = false;
+            // Check adjacent files for a friendly pawn.
+            for (int j = 0; j < 64; j++) {
+                if (j == i) continue;
+                int other_file = j % 8;
+                if (std::abs(other_file - file) == 1 && state[j] == piece) {
+                    has_neighbor = true;
+                    break;
+                }
+            }
+
+            // Penalize if no neighboring pawn.
+            if (!has_neighbor) {
+                if (piece == WHITE_PAWN)
+                    score -= 0.2;
+                else
+                    score += 0.2;  // Isolated black pawn is bad for black, so bonus for white.
+            }
+        }
+    }
+    return score;
+}
+
+double Board::calculate_raw_material_score() {
+
+    double material_score = 0.0;
+    for (int i = 0; i < 64; i++) {
+        switch(state[i]) {
+            case EMPTY: break;
+            case WHITE_PAWN: material_score += 1.0; break;
+            case WHITE_ROOK: material_score += 5.0; break;
+            case WHITE_KNIGHT: material_score += 3.0; break;
+            case WHITE_BISHOP: material_score += 3.0; break;
+            case WHITE_QUEEN: material_score += 9.0; break;
+            case BLACK_PAWN: material_score -= 1.0; break;
+            case BLACK_ROOK: material_score -= 5.0; break;
+            case BLACK_KNIGHT: material_score -= 3.0; break;
+            case BLACK_BISHOP: material_score -= 3.0; break;
+            case BLACK_QUEEN: material_score -= 9.0; break;
+            default: break;
+        }
+    }
+
+    return material_score;
 }
 
 vector<Move> Board::get_legal_moves(Color player) {
-    // TODO: This is super inefficient! Don't check literally every possible move!
 
     vector<Move> legal_moves;
 
@@ -88,15 +175,6 @@ vector<Move> Board::get_legal_moves(Color player) {
         } else if (piece == WHITE_KING || piece == BLACK_KING) {
             append_all_legal_king_moves(legal_moves, src_index, player);
         }
-
-        // for (std::string& dst_square : all_squares) {
-        //     for (std::string& promotion_notation : promotion_notations) {
-        //         Move move(src_square + dst_square + promotion_notation);
-        //         if (is_legal_move(move, player)) {
-        //             legal_moves.push_back(move);
-        //         }
-        //     }
-        // }
     }
 
     return legal_moves;
@@ -104,18 +182,12 @@ vector<Move> Board::get_legal_moves(Color player) {
 
 void Board::append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index, Color player) {
     // legal moves: (UNPINNED) 1 step forward, 2 step forward, left diagonal capture, right diagonal capture, promotions if on back rank!
-    // TODO push all legal moves into legal_moves as efficiently as possible! 
 
-    // vector<std::string> promotion_notations = {"", "pR", "pN", "pB"};
-    // Move move(all_squares[src_index] + all_squares[dst_index] + promotion_notation);
-    
     int src_file = src_index % 8;
     int src_rank = src_index / 8;
     int direction = (player == WHITE) ? 1 : -1;
     int start_rank = (player == WHITE) ? 1 : 6;
     int back_rank = (player == WHITE) ? 7 : 0;
-
-    // TODO this is probably broken
 
     // One square forward
     int dst_index = ((src_rank+direction)*8) + src_file;
@@ -135,7 +207,8 @@ void Board::append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index
         int left_cap_idx = ((src_rank+direction)*8) + src_file - 1;
         if (state[left_cap_idx] != EMPTY) {
             bool captured_piece_is_white = (state[left_cap_idx] >= WHITE_PAWN && state[left_cap_idx] <= WHITE_KING);
-            if (((player == WHITE) && !captured_piece_is_white) || ((player == BLACK && captured_piece_is_white)) || en_passant_square == left_cap_idx) {
+            if ((((player == WHITE) && !captured_piece_is_white) || ((player == BLACK && captured_piece_is_white)) || en_passant_square == left_cap_idx)
+                    && !pinned_move(player, src_index, dst_index)) {
                 legal_moves.push_back(Move(all_squares[src_index] + all_squares[left_cap_idx]));
             }
 
@@ -153,7 +226,8 @@ void Board::append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index
         int right_cap_idx = ((src_rank+direction)*8) + src_file + 1;
         if (state[right_cap_idx] != EMPTY) {
             bool captured_piece_is_white = (state[right_cap_idx] >= WHITE_PAWN && state[right_cap_idx] <= WHITE_KING);
-            if (((player == WHITE) && !captured_piece_is_white) || ((player == BLACK && captured_piece_is_white)) || en_passant_square == right_cap_idx) {
+            if ((((player == WHITE) && !captured_piece_is_white) || ((player == BLACK && captured_piece_is_white)) || en_passant_square == right_cap_idx)
+                    && !pinned_move(player, src_index, dst_index)) {
                 legal_moves.push_back(Move(all_squares[src_index] + all_squares[right_cap_idx]));
             }
 
@@ -178,26 +252,152 @@ void Board::append_all_legal_pawn_moves(vector<Move>& legal_moves, int src_index
 
 void Board::append_all_legal_rook_moves(vector<Move>& legal_moves, int src_index, Color player) {
     // legal moves: (UNPINNED) any horizontal or vertical move until another piece is in the way 
-    // TODO push all legal moves into legal_moves as efficiently as possible! 
+    int src_rank = src_index / 8;
+    int src_file = src_index % 8;
+    
+    // Check horizontal and vertical directions.
+    for (auto deltas : std::initializer_list<std::pair<int,int>>{{0, 1}, {0, -1}, {1, 0}, {-1, 0}}) {
+        int h_delta = deltas.first;
+        int f = src_file + h_delta;
+
+        int v_delta = deltas.second;
+        int r = src_rank + v_delta;
+        
+        while (f >= 0 && f < 8 && r >= 0 && r < 8) {
+            int dst_index = r*8 + f;
+            Piece piece = state[dst_index];
+            if (piece == EMPTY && !pinned_move(player, src_index, dst_index)) {
+                // Can move to any empty square when nothing is in between
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+            } else if (piece != EMPTY) {
+                // Can capture opponent pieces when nothing is in between
+                bool piece_is_white = (piece >= WHITE_PAWN && piece <= WHITE_KING);
+                if ((((player == WHITE) && !piece_is_white) || ((player == BLACK) && piece_is_white))
+                        && !pinned_move(player, src_index, dst_index)) {
+                    legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+                }
+                
+                // Can't move past pieces!
+                break;
+            }
+
+            f += h_delta;
+            r += v_delta;
+        }
+
+    }
 }
 
 void Board::append_all_legal_knight_moves(vector<Move>& legal_moves, int src_index, Color player) {
     // legal moves: (UNPINNED) any L move
-    // TODO push all legal moves into legal_moves as efficiently as possible! 
+    int src_rank = src_index / 8;
+    int src_file = src_index % 8;
+
+    for (int file_offset : {-1, 1, -2, 2}) {
+        for (int rank_offset : {-1, 1, -2, 2}) {
+            if (abs(file_offset) == abs(rank_offset)) {
+                continue;
+            }
+
+            int dst_rank = src_rank + rank_offset;
+            int dst_file = src_file + file_offset;
+
+            // Ensure dst_index is on the board
+            if (dst_rank < 0 || dst_rank >= 8 || dst_file < 0 || dst_file >= 8) {
+                continue;
+            }
+
+            int dst_index = (dst_rank*8) + dst_file;
+            bool dst_piece_is_white = (state[dst_index] >= WHITE_PAWN && state[dst_index] <= WHITE_KING);
+
+            if ((state[dst_index] == EMPTY || (dst_piece_is_white && (player == BLACK)) || (!dst_piece_is_white && (player == WHITE)))
+                    && (!pinned_move(player, src_index, dst_index))) {
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+            }
+        }
+    }
 }
 
 void Board::append_all_legal_bishop_moves(vector<Move>& legal_moves, int src_index, Color player) {
     // legal moves: (UNPINNED) any diagonal move until another piece is in the way 
-    // TODO push all legal moves into legal_moves as efficiently as possible! 
+    int src_rank = src_index / 8;
+    int src_file = src_index % 8;
+    
+    // Check horizontal and vertical directions.
+    for (auto deltas : std::initializer_list<std::pair<int,int>>{{1, 1}, {-1, -1}, {1, -1}, {-1, 1}}) {
+        int h_delta = deltas.first;
+        int f = src_file + h_delta;
+
+        int v_delta = deltas.second;
+        int r = src_rank + v_delta;
+        
+        while (f >= 0 && f < 8 && r >= 0 && r < 8) {
+            int dst_index = r*8 + f;
+            Piece piece = state[dst_index];
+            if (piece == EMPTY && !pinned_move(player, src_index, dst_index)) {
+                // Can move to any empty square when nothing is in between
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+            } else if (piece != EMPTY) {
+                // Can capture opponent pieces when nothing is in between
+                bool piece_is_white = (piece >= WHITE_PAWN && piece <= WHITE_KING);
+                if ((((player == WHITE) && !piece_is_white) || ((player == BLACK) && piece_is_white))
+                        && !pinned_move(player, src_index, dst_index)) {
+                    legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+                }
+                
+                // Can't move past pieces!
+                break;
+            }
+            
+            f += h_delta;
+            r += v_delta;
+        }
+    }
 }
 
 void Board::append_all_legal_queen_moves(vector<Move>& legal_moves, int src_index, Color player) {
     // legal moves: (UNPINNED) any diagonal/horizontal/vertical move until another piece is in the way 
-    // TODO push all legal moves into legal_moves as efficiently as possible! 
+    append_all_legal_rook_moves(legal_moves, src_index, player);
+    append_all_legal_bishop_moves(legal_moves, src_index, player);
 }
 
 void Board::append_all_legal_king_moves(vector<Move>& legal_moves, int src_index, Color player) {
     // legal moves: 1 square any direction not into check
+
+    int src_rank = src_index / 8;
+    int src_file = src_index % 8;
+
+    for (int file_offset = -1; file_offset <= 1; file_offset++) {
+        for (int rank_offset = -1; rank_offset <= 1; rank_offset++) {
+            if (file_offset == 0 && rank_offset == 0) {
+                continue;
+            }
+
+            int dst_rank = src_rank + rank_offset;
+            int dst_file = src_file + file_offset;
+
+            if (dst_rank < 0 || dst_rank >= 8 || dst_file < 0 || dst_file >= 8) {
+                continue;
+            }
+            
+            int dst_index = dst_rank*8 + dst_file;
+            Piece piece = state[dst_index];
+
+            if (piece == EMPTY && !pinned_move(player, src_index, dst_index)) {
+                legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+            }
+
+            if (piece != EMPTY) {
+                // Can capture opponent pieces when nothing is in between
+                bool piece_is_white = (piece >= WHITE_PAWN && piece <= WHITE_KING);
+                if ((((player == WHITE) && !piece_is_white) || ((player == BLACK) && piece_is_white))
+                        && !pinned_move(player, src_index, dst_index)) {
+                    legal_moves.push_back(Move(all_squares[src_index] + all_squares[dst_index]));
+                }
+            }
+
+        }
+    }
 }
 
 bool Board::has_no_legal_moves(Color player) {
@@ -602,9 +802,13 @@ bool Board::is_under_attack_from_knight(int file, int rank, Color player) {
         attacker = WHITE_KNIGHT;
     }
 
-    for (int file_offset : {-1, 1, -2, 2}) {
-        for (int rank_offset : {-1, 1, -2, 2}) {
-            if (get_piece(file + file_offset, rank + rank_offset) == attacker) {
+    for (int short_offset : {-1, 1}) {
+        for (int long_offset : {-2, 2}) {
+            if (get_piece(file + short_offset, rank + long_offset) == attacker) {
+                return true;
+            }
+
+            if (get_piece(file + long_offset, rank + short_offset) == attacker) {
                 return true;
             }
         }
@@ -981,11 +1185,11 @@ Board::Board() {
 }
 
 vector<std::string> Board::generate_all_squares() {
-    // Note: This ABSOLUTELY MUST generate squares A1, A2, ... B1, B2, ... up to H8 in that order!
+    // Note: This ABSOLUTELY MUST generate squares A1->H1, A2->H2, etc... in that order!
 
     vector<std::string> squares;
-    for (char file = 'a'; file <= 'h'; ++file) {
-        for (char rank = '1'; rank <= '8'; ++rank) {
+    for (char rank = '1'; rank <= '8'; ++rank) {
+        for (char file = 'a'; file <= 'h'; ++file) {
             std::string square;
             square.push_back(file);
             square.push_back(rank);

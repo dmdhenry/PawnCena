@@ -8,7 +8,7 @@ void test() {
 }
 
 void play() {
-    Color result = play_game(true, true);
+    Color result = play_game(false, true);
     if (result == WHITE) {
         cout << "White wins!" << endl; 
     } else if (result == BLACK) {
@@ -19,7 +19,7 @@ void play() {
 }
 
 int main() {
-    test();
-    // play();
+    // test();
+    play();
     return 0;
 }

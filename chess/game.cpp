@@ -113,7 +113,7 @@ std::string request_player_move(bool trying_again) {
 }
 
 Move request_bot_move(Board& board, Color player) {
-    Bot bot;
+    Bot bot(7, 20.0, 0.5, 1.0, 1.0);
     return bot.request_move(board, player);
 }
 

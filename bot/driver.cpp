@@ -9,8 +9,24 @@
 #include <vector>
 #include <chrono>
 
-Bot::Bot() : max_depth(2) {}  // Default to depth of 3!
-Bot::Bot(int max_depth) : max_depth(max_depth) {}
+Bot::Bot() : max_depth(5),
+             material_weight(1.0), 
+             mobility_weight(1.0), 
+             king_safety_weight(1.0), 
+             pawn_structure_weight(1.0) {}
+
+Bot::Bot(int max_depth) : max_depth(max_depth), 
+                          material_weight(1.0), 
+                          mobility_weight(1.0), 
+                          king_safety_weight(1.0), 
+                          pawn_structure_weight(1.0) {}
+
+Bot::Bot(int max_depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight) : 
+                          max_depth(max_depth),                           
+                          material_weight(material_weight), 
+                          mobility_weight(mobility_weight), 
+                          king_safety_weight(king_safety_weight), 
+                          pawn_structure_weight(pawn_structure_weight) {}
 
 int moves_evaluted = 0;
 
@@ -18,9 +34,8 @@ Move Bot::request_move(Board& board, Color player) {
     vector<Move> legal_moves = board.get_legal_moves(player);
     Move best_move;
 
-
     ////////////////////////////////////////// DEBUG INFO //////////////////////////////////////////
-    auto DBG_timer_start = std::chrono::high_resolution_clock::now();
+    // auto DBG_timer_start = std::chrono::high_resolution_clock::now();
     ////////////////////////////////////////// DEBUG INFO //////////////////////////////////////////
 
     if (player == WHITE) { // WHITE: maximize the score
@@ -49,18 +64,18 @@ Move Bot::request_move(Board& board, Color player) {
 
     ////////////////////////////////////////// DEBUG INFO //////////////////////////////////////////
 
-    std::cout << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
+    // std::cout << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
 
-    auto DBG_timer_end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = DBG_timer_end - DBG_timer_start;
-    std::cout << moves_evaluted << " moves evaluted in " << elapsed.count() << " seconds." << std::endl;
-    std::cout << moves_evaluted / elapsed.count() << " moves per second!" << std::endl;
+    // auto DBG_timer_end = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double> elapsed = DBG_timer_end - DBG_timer_start;
+    // std::cout << moves_evaluted << " moves evaluted in " << elapsed.count() << " seconds." << std::endl;
+    // std::cout << moves_evaluted / elapsed.count() << " moves per second!" << std::endl;
 
-    std::cout << std::endl << std::endl;
+    // std::cout << std::endl << std::endl;
     
-    CallTracker::printStats("score");
-    CallTracker::printStats("legal");
-    std::cout << std::endl;
+    // CallTracker::printStats("score");
+    // CallTracker::printStats("legal");
+    // std::cout << std::endl;
     
     ////////////////////////////////////////// DEBUG INFO //////////////////////////////////////////
 
@@ -70,7 +85,7 @@ Move Bot::request_move(Board& board, Color player) {
 
 double Bot::evaluate_move(Board& board, Move& move, Color player, int depth, double alpha, double beta) {
 
-    moves_evaluted++;  // DEBUG
+    // moves_evaluted++;  // DEBUG
 
     // Create a board after the move is played
     Board board_after_move = board.inspect_move(move, player);
@@ -78,29 +93,29 @@ double Bot::evaluate_move(Board& board, Move& move, Color player, int depth, dou
 
     // Terminal condition: reached max search depth or no moves available
     if (depth >= max_depth) {
-        CallTracker::recordCall("start");
-        double score = board_after_move.score_position(player_to_move);
-        CallTracker::recordCall("score");
+        // CallTracker::recordCall("start");
+        double score = board_after_move.score_position(player_to_move, depth, material_weight, mobility_weight, king_safety_weight, pawn_structure_weight);
+        // CallTracker::recordCall("score");
         return score;
     }
 
     // Get all legal moves
-    CallTracker::recordCall("start");
+    // CallTracker::recordCall("start");
     std::vector<Move> legal_moves = board_after_move.get_legal_moves(player_to_move);
-    CallTracker::recordCall("legal");
+    // CallTracker::recordCall("legal");
 
     // If no legal moves, score position!
     if (legal_moves.empty()) {
-        return board_after_move.score_position(player_to_move);
+        return board_after_move.score_position(player_to_move, depth, material_weight, mobility_weight, king_safety_weight, pawn_structure_weight);
     }
 
     // If player is WHITE, we assume WHITE is maximizing and BLACK is minimizing
-    if (player == WHITE) {  
+    if (player_to_move == WHITE) {  
         double max_eval = -std::numeric_limits<double>::infinity();
         for (const Move& next_move : legal_moves) {
             double eval = evaluate_move(board_after_move, 
                                           const_cast<Move&>(next_move), 
-                                          BLACK, 
+                                          WHITE, 
                                           depth + 1, 
                                           alpha, 
                                           beta);
@@ -118,7 +133,7 @@ double Bot::evaluate_move(Board& board, Move& move, Color player, int depth, dou
         for (const Move& next_move : legal_moves) {
             double eval = evaluate_move(board_after_move, 
                                           const_cast<Move&>(next_move), 
-                                          WHITE, 
+                                          BLACK, 
                                           depth + 1, 
                                           alpha, 
                                           beta);

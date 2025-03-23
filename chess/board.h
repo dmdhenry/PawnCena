@@ -76,6 +76,11 @@ private:
     void append_all_legal_queen_moves(vector<Move>& legal_moves, int src_index, Color player);
     void append_all_legal_king_moves(vector<Move>& legal_moves, int src_index, Color player);
 
+    double calculate_raw_material_score();
+    double calculate_mobility_difference();
+    double evaluate_king_safety();
+    double evaluate_pawn_structure();
+
 public:
     Board();
     Board(const Board& other);
@@ -95,7 +100,7 @@ public:
     bool is_threefold_repetition_draw();
 
     Board inspect_move(Move& move, Color player);
-    double score_position(Color player_to_move);
+    double score_position(Color player_to_move, int depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight);
 };
 
 void print_piece(const Piece piece);

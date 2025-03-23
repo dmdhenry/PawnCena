@@ -10,7 +10,7 @@ enum Color : uint8_t {
     DRAW
 };
 
-Color play_game(bool, bool);
+Color play_game(bool white_real, bool black_real);
 
 void play_move(Board& board, Color player, bool is_real);
 

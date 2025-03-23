@@ -482,6 +482,27 @@ bool test13() {
     return true;
 }
 
+bool test14() {
+    Board b("q3k3/8/8/8/8/7q/8/3K4 w - - 0 1"); // board
+    bool t = false; // turn tracker --> false means START WITH BLACK!!!!!!!!!!!!!
+    
+    // Black must find the 2-move checkmate!
+    int max_moves = 2;
+    for (int i = 0; i < max_moves; i++) {
+        Move move = request_bot_move(b, BLACK);
+        if (!valid(b, t, move.get_move())) { return false; } 
+
+        if (is_checkmated(b, WHITE)) {
+            return true;
+        }
+
+        move = request_bot_move(b, WHITE);
+        if (!valid(b, t, move.get_move())) { return false; } 
+    }
+
+    return true;
+}
+
 void run_all_test_cases() {
 
     // GAME TEST CASES
@@ -499,6 +520,7 @@ void run_all_test_cases() {
     run_test_case(12, test12()); // en passant
 
     // BOT TEST CASES
-    run_test_case(13, test13()); // bot finds 1 move checkmate
+    run_test_case(13, test13()); // bot finds mate in 1
+    run_test_case(14, test14()); // bot finds mate in 2
     
 }
