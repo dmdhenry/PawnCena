@@ -100,9 +100,9 @@ public:
     bool is_threefold_repetition_draw();
 
     Board inspect_move(Move& move, Color player);
-    double score_position(Color player_to_move, int depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight);
+    double score_position(Color player_to_move, int depth, double material_weight, double king_safety_weight);
 };
 
-void print_piece(const Piece piece);
+std::wstring get_piece_string(const Piece piece);
 
 #endif

@@ -1,14 +1,17 @@
-#include "game.h"
-#include "board.h"
-#include "move.h"
 #include "../bot/driver.h"
 #include <iostream>
 #include <string>
+#include "utils.h"
+#include "board.h"
+#include "game.h"
+#include "move.h"
+#include "gui.h"
 using std::cout, std::endl;
 
 Color play_game(bool white_real, bool black_real) {
-    
+
     Board board;
+    board.display();
 
     while (true) {
 
@@ -82,39 +85,32 @@ void play_move(Board& board, Color player, bool is_real) {
     Move move;
     if (is_real) {
         board.display();
-
-        bool trying_again = false;
-        while (true) {
-            move.set_move(request_player_move(trying_again));
-            if (board.is_legal_move(move, player)) {
-                break;
-            }
-
-            trying_again = true;
-            board.display();
-        }
+        move.set_move(request_player_move(board, player));
     } else {
         move = request_bot_move(board, player);
     }
 
     // Update the board
     board.update_move(move, player);
-}
-
-std::string request_player_move(bool trying_again) {
-    std::string move;
-    if (trying_again) {
-        std::cout << "TRY AGAIN: ";
-    } else {
-        std::cout << "Input a move: ";
+    
+    if (is_real) {
+        board.display();
     }
-    std::cin >> move;
-    return move;
 }
 
 Move request_bot_move(Board& board, Color player) {
-    Bot bot(7, 20.0, 0.5, 1.0, 1.0);
-    return bot.request_move(board, player);
+    Bot bot(5, 20.0, 1.0);
+
+    std::string text = "Pawn Cena is selecting move...";
+    write_gui_box(text);
+
+    Move move = bot.request_move(board, player);
+
+    std::string player_color = (player == WHITE) ? "white" : "black";
+    text = "Pawn Cena (" + player_color + ") plays " + move.get_move() + ".";
+    write_gui_box(text);
+
+    return move;
 }
 
 bool is_checkmated(Board& board, Color player) {

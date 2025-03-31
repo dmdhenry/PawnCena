@@ -14,7 +14,6 @@ Color play_game(bool white_real, bool black_real);
 
 void play_move(Board& board, Color player, bool is_real);
 
-std::string request_player_move(bool trying_again);
 Move request_bot_move(Board& board, Color player);
 
 bool is_checkmated(Board& board, Color player);

@@ -6,16 +6,14 @@ class Bot {
 private:
     int max_depth;
     double material_weight;
-    double mobility_weight;
     double king_safety_weight;
-    double pawn_structure_weight;
     
     double evaluate_move(Board& board, Move& move, Color player, int depth, double alpha, double beta);
 
 public:
     Bot();
     Bot(int max_depth);
-    Bot(int max_depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight);
+    Bot(int max_depth, double material_weight, double king_safety_weight);
 
     Move request_move(Board& board, Color player);
 };

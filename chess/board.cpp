@@ -1,4 +1,3 @@
-#include <iostream>
 #include <sstream>
 #include <cassert>
 #include <cmath>
@@ -7,21 +6,17 @@
 #include "utils.h"
 #include "move.h"
 #include "game.h"
-using std::cout, std::endl;
+#include "gui.h"
 
 void Board::display() const {
-    clear_terminal();
-
-    cout << "  abcdefgh" << endl;
     for (int rank = 7; rank >= 0; rank--) {
-        cout << rank+1 << " ";
         for (int file = 0; file < 8; file++) {
             int index = (rank*8) + file;
-            print_piece(state[index]);
+            draw_square(state[index], file, rank);
         }
-        cout << " " << rank+1 << endl;
     }
-    cout << "  abcdefgh" << endl;
+
+    refresh_gui();
 }
 
 Board Board::inspect_move(Move& move, Color player) {
@@ -30,7 +25,7 @@ Board Board::inspect_move(Move& move, Color player) {
     return new_board;
 }
 
-double Board::score_position(Color player_to_move, int depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight) {
+double Board::score_position(Color player_to_move, int depth, double material_weight, double king_safety_weight) {
     // Evaluate position without any recursion (for leaf nodes in bot)
     // Lower scores favor black, higher scores favor white
     
@@ -1278,46 +1273,33 @@ Board::Board(std::string FEN) {
     prev_moves.clear();
 }
 
-void print_piece(const Piece piece) {
+std::wstring get_piece_string(const Piece piece) {
     switch(piece) {
         case BLACK_PAWN:     
-            cout << "♙";
-            break;
+            return L"♙";
         case BLACK_ROOK:     
-            cout << "♖";
-            break;
+            return L"♖";
         case BLACK_KNIGHT:   
-            cout << "♘";
-            break;
+            return L"♘";
         case BLACK_BISHOP:   
-            cout << "♗";
-            break;
+            return L"♗";
         case BLACK_QUEEN:    
-            cout << "♕";
-            break;
+            return L"♕";
         case BLACK_KING:     
-            cout << "♔";
-            break;
+            return L"♔";
         case WHITE_PAWN:     
-            cout << "♟";
-            break;
+            return L"♟";
         case WHITE_ROOK:     
-            cout << "♜";
-            break;
+            return L"♜";
         case WHITE_KNIGHT:   
-            cout << "♞";
-            break;
+            return L"♞";
         case WHITE_BISHOP:   
-            cout << "♝";
-            break;
+            return L"♝";
         case WHITE_QUEEN:    
-            cout << "♛";
-            break;
+            return L"♛";
         case WHITE_KING:     
-            cout << "♚";
-            break;
+            return L"♚";
         default:             
-            cout << ".";
-            break;
+            return L".";
     }
 }

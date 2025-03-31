@@ -11,22 +11,16 @@
 
 Bot::Bot() : max_depth(5),
              material_weight(1.0), 
-             mobility_weight(1.0), 
-             king_safety_weight(1.0), 
-             pawn_structure_weight(1.0) {}
+             king_safety_weight(1.0) {}
 
 Bot::Bot(int max_depth) : max_depth(max_depth), 
                           material_weight(1.0), 
-                          mobility_weight(1.0), 
-                          king_safety_weight(1.0), 
-                          pawn_structure_weight(1.0) {}
+                          king_safety_weight(1.0) {}
 
-Bot::Bot(int max_depth, double material_weight, double mobility_weight, double king_safety_weight, double pawn_structure_weight) : 
-                          max_depth(max_depth),                           
-                          material_weight(material_weight), 
-                          mobility_weight(mobility_weight), 
-                          king_safety_weight(king_safety_weight), 
-                          pawn_structure_weight(pawn_structure_weight) {}
+Bot::Bot(int max_depth, double material_weight, double king_safety_weight) : 
+                          max_depth(max_depth),     
+                          material_weight(material_weight),
+                          king_safety_weight(king_safety_weight) {}
 
 int moves_evaluted = 0;
 
@@ -94,7 +88,7 @@ double Bot::evaluate_move(Board& board, Move& move, Color player, int depth, dou
     // Terminal condition: reached max search depth or no moves available
     if (depth >= max_depth) {
         // CallTracker::recordCall("start");
-        double score = board_after_move.score_position(player_to_move, depth, material_weight, mobility_weight, king_safety_weight, pawn_structure_weight);
+        double score = board_after_move.score_position(player_to_move, depth, material_weight, king_safety_weight);
         // CallTracker::recordCall("score");
         return score;
     }
@@ -106,7 +100,7 @@ double Bot::evaluate_move(Board& board, Move& move, Color player, int depth, dou
 
     // If no legal moves, score position!
     if (legal_moves.empty()) {
-        return board_after_move.score_position(player_to_move, depth, material_weight, mobility_weight, king_safety_weight, pawn_structure_weight);
+        return board_after_move.score_position(player_to_move, depth, material_weight, king_safety_weight);
     }
 
     // If player is WHITE, we assume WHITE is maximizing and BLACK is minimizing

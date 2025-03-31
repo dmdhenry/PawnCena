@@ -1,3 +1,6 @@
 # PawnCena
 
-Chess bot (Current ELO: 0)
+Chess bot (Current ELO: N/A)
+
+Accomplishments:
+- Beat Martin

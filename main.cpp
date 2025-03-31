@@ -1,25 +1,38 @@
 #include <iostream>
+#include "chess/gui.h"
 #include "chess/game.h"
 #include "testing/test_cases.h"
-using std::cout, std::endl;
+#include "chess/utils.h"
 
 void test() {
     run_all_test_cases();
 }
 
 void play() {
-    Color result = play_game(false, true);
+
+    // Start GUI
+    initialize_gui();
+    
+    bool white_real = true;
+    bool black_real = false;
+
+    // Display board and run game loop.
+    Color result = play_game(white_real, black_real);
     if (result == WHITE) {
-        cout << "White wins!" << endl; 
+        std::cout << "White wins!" << std::endl; 
     } else if (result == BLACK) {
-        cout << "Black wins!" << endl;
+        std::cout << "Black wins!" << std::endl;
     } else {
-        cout << "Draw!" << endl;
+        std::cout << "Draw!" << std::endl;
     }
+
+    // End GUI
+    close_gui();
 }
 
 int main() {
     // test();
+    reset_debug_log();
     play();
     return 0;
 }
